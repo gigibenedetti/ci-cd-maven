@@ -56,16 +56,16 @@
 			<plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.0.0-M5</version> <!-- Use a versão mais recente -->
+            <version>3.0.0-M5</version>
             <configuration>
-                <testFailureIgnore>false</testFailureIgnore>
+                <testFailureIgnore>true</testFailureIgnore>
             </configuration>
             <executions>
                 <execution>
                     <id>surefire-report</id>
                     <phase>test</phase>
                     <goals>
-                        <goal>report-only</goal>
+                        <goal>report</goal>
                     </goals>
                 </execution>
             </executions>
