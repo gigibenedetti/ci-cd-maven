@@ -1,42 +1,55 @@
-
-
+# Definindo o nome do fluxo de trabalho (workflow)
 name: Java Maven Build & Publish Artifact
 
+# Configurando os eventos que acionam o workflow
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ]  # O workflow é acionado ao fazer push para a branch "main"
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main" ]  # O workflow também é acionado ao criar um pull request para a branch "main"
 
 jobs:
-  build_test:
+  build_test:  # Definindo o primeiro job chamado "build_test"
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Executar o job em uma máquina Ubuntu
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
+    - uses: actions/checkout@v2  # Passo para fazer o checkout do código do repositório
+    - name: Set up JDK 17  # Configurando o JDK 17
+      uses: actions/setup-java@v2
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-    - name: Build with Maven
+    - name: Build with Maven  # Compilar o projeto com Maven
       run: mvn -B package --file pom.xml
 
    
-  publish-job:
-    runs-on: ubuntu-latest
-    needs: build_test
+  publish-job:  # Definindo o segundo job chamado "publish-job"
+    runs-on: ubuntu-latest  # Executar o job em uma máquina Ubuntu
+    needs: build_test  # Indicando que este job depende do job anterior (build_test)
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-java@v3
+    - uses: actions/checkout@v2  # Passo para fazer o checkout do código do repositório
+    - uses: actions/setup-java@v2  # Configurando o JDK 17 novamente
       with:
         java-version: '17'
         distribution: 'temurin'
-    - run: mvn --batch-mode --update-snapshots verify
-    - run: mkdir staging && cp target/*.jar staging
-    - uses: actions/upload-artifact@v3
+    - run: mvn --batch-mode --update-snapshots verify  # Executando os testes com Maven
+    - run: mkdir staging && cp -r target/site staging  # Criando uma pasta de preparação e copiando os arquivos do relatório
+    - uses: actions/upload-artifact@v2  # Enviando os artefatos gerados para o GitHub
       with:
-        name: Package
-        path: staging
+        name: Package  # Nome do conjunto de artefatos
+        path: staging  # Caminho para os artefatos
+
+  deploy-github-pages:  # Adicionando um job para publicar no GitHub Pages
+    needs: publish-job
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Publish to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.MY_GITHUB_TOKEN }}
+        publish_dir: staging/site  # Caminho onde os relatórios estão
